@@ -1,9 +1,11 @@
 package br.com.projeto.api_meio_ambiente.controllers;
 
-import java.util.ArrayList;
+// import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,8 +14,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.projeto.api_meio_ambiente.models.Client;
 import br.com.projeto.api_meio_ambiente.models.Person;
 import br.com.projeto.api_meio_ambiente.repositorys.Repositorys;
+import br.com.projeto.api_meio_ambiente.services.Services;
+import jakarta.validation.Valid;
 
 @RestController
 public class Controller {
@@ -21,15 +26,18 @@ public class Controller {
     @Autowired
     private Repositorys exec;
 
+    @Autowired
+    private Services service;
+
     //REQUISIÇÕES HTTP PELO MÉTODO GET
     @GetMapping("/api/pessoas")
-    public List<Person> encontrarPessoas() {
-        return exec.findAll();
+    public ResponseEntity<?> encontrarPessoas() {
+        return service.selecionar();
     }
 
     @GetMapping("/api/encontrarPessoa/{cd}")
-    public Person encontrarPessoa(@PathVariable int cd) {
-        return exec.findById(cd);
+    public ResponseEntity<?> encontrarPessoa(@PathVariable int cd) {
+        return service.selecionarPeloCodigo(cd);
     }
 
     @GetMapping("/api/contador")
@@ -47,17 +55,17 @@ public class Controller {
         return exec.findByOrderByYearOldDesc();
     }
 
-    @GetMapping("api/apresentacoes")
-    public ArrayList<String> nos() {
-        ArrayList<String> eu = new ArrayList<>();
-        List<Person> p = encontrarPessoas();
+    // @GetMapping("api/apresentacoes")
+    // public ArrayList<String> nos() {
+    //     ArrayList<String> eu = new ArrayList<>();
+    //     List<Person> p = encontrarPessoas();
 
-        for (Person a : p) {
-            eu.add("Meu nome é " + a.getName() + " e eu tenho " + a.getYearOld());
-        }
+    //     for (Person a : p) {
+    //         eu.add("Meu nome é " + a.getName() + " e eu tenho " + a.getYearOld());
+    //     }
 
-        return eu;
-    }
+    //     return eu;
+    // }
 
     @GetMapping("/api/filtrarPor/{term}")
     public List<Person> nomeContem(@PathVariable String term) {
@@ -74,24 +82,40 @@ public class Controller {
         return exec.findByNameEndsWith(term);
     }
 
+    @GetMapping("/api/somarIdades")
+    public int somarIdades() {
+        return exec.sumYearsOld();
+    }
+
+
+    @GetMapping("/api/idadeMaiorQue/{yearOld}")
+    public List<Person> idadeMaiorIgual(@PathVariable int yearOld) {
+        return exec.yearOldBggerThan(yearOld);
+    }
+
     //REQUISIÇÕES HTTP PELO MÉTODO POST
     @PostMapping("/api/cadastrar")
-    public Person cadastrarPessoa(@RequestBody Person p) {
-        return exec.save(p);
+    public ResponseEntity<?> cadastrarPessoa(@RequestBody Person p) {
+        return service.cadastrar(p);
     }
 
     //REQUISIÇÕES HTTP PELO MÉTODO PUT
     @PutMapping("/api/editar")
-    public Person editarPessoa(@RequestBody Person p) {
-        return exec.save(p);
+    public ResponseEntity<?> editarPessoa(@RequestBody Person p) {
+        return service.editar(p);
     }
 
     //REQUISIÇÕES HTTP PELO MÉTODO DELETE
     @DeleteMapping("/api/deletarPessoa/{cd}")
-    public void excluirPessoa(@PathVariable int cd) {
-        Person p = encontrarPessoa(cd);
+    public ResponseEntity<?> excluirPessoa(@PathVariable int cd) {
+        return service.deletarPessoa(cd);
+    }
 
-        exec.delete(p);
+
+
+    @PostMapping("/client")
+    public void client(@Valid @RequestBody Client c) {
+        
     }
 
 
@@ -115,6 +139,11 @@ public class Controller {
     @PostMapping("/person")
     public Person pessoa(@RequestBody Person p) {
         return p;
+    }
+
+    @GetMapping("/status")
+    public ResponseEntity<?> status() {
+        return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
 }

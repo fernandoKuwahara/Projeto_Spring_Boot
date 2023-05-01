@@ -2,6 +2,7 @@ package br.com.projeto.api_meio_ambiente.repositorys;
 
 import java.util.List;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -24,4 +25,12 @@ public interface Repositorys extends CrudRepository<Person, Integer>{
 
     List<Person> findByNameEndsWith(String term);
 
+    @Query(value = "SELECT SUM(year_old) FROM persons", nativeQuery = true)
+    int sumYearsOld();
+
+    @Query(value = "SELECT * FROM persons WHERE year_old >= :yearOld", nativeQuery = true)
+    List<Person> yearOldBggerThan(int yearOld);
+
+    int countById(int id);
+ 
 }
